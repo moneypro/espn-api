@@ -1,10 +1,16 @@
 import pdb
+from typing import List, Any
+
 from .player import Player
 from .matchup import Matchup
 from .constant import STATS_MAP
 
 class Team(object):
+
+    schedule: list[Matchup]
+
     '''Teams are part of the league'''
+
     def __init__(self, data, member, roster, schedule, year):
         self.team_id = data['id']
         self.team_abbrev = data['abbrev']

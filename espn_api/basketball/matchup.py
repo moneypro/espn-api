@@ -44,4 +44,4 @@ class Matchup(object):
 
             self.away_team_cats = { STATS_MAP[i]: {'score': data['away']['cumulativeScore']['scoreByStat'][i]['score'],
                                                    'result': data['away']['cumulativeScore']['scoreByStat'][i]['result']} for i in data['away']['cumulativeScore']['scoreByStat'].keys()}
-
+7
