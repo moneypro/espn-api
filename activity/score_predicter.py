@@ -15,11 +15,16 @@ def predict(roster: list[Player], number_of_games_map: dict[str, int]) -> (int, 
 
 
 def get_lo_hi_stats(player: Player) -> (int, int):
-    projected_season_stat = get_fantasy_pts(player.stats['102021']['avg'])
-    if '002020' not in player.stats:
-        return projected_season_stat, projected_season_stat
-    past_season_stat = get_fantasy_pts(player.stats['002020']['avg'])
-    return min(past_season_stat, projected_season_stat), max(past_season_stat, projected_season_stat)
+    stat_period_list = ['012021', '022021', '002020', '002021', '102021', '032021']
+    fpts_for_stat_period = [get_stat_from_stat_period(player, stat_period) for stat_period in stat_period_list]
+    ignore_none_fpts_list = [fpts for fpts in fpts_for_stat_period if fpts is not None]
+    return min(ignore_none_fpts_list), max(ignore_none_fpts_list)
+
+
+def get_stat_from_stat_period(player: Player, stat_period: str):
+    if stat_period not in player.stats:
+        return None
+    return get_fantasy_pts(player.stats[stat_period]['avg'])
 
 
 def cumulate_number_of_games(match_up_week: int, league: League) -> dict[str, int]:
@@ -55,13 +60,13 @@ def cumulate_number_of_games(match_up_week: int, league: League) -> dict[str, in
 
 
 def get_fantasy_pts(stats: dict) -> float:
-    return get_stat(stats, 'PTS') + get_stat(stats, '3PTM') - stats['FGA'] + stats['FGM'] * 2 - stats['FTA'] + stats['FTM'] \
+    return get_stat_in_category(stats, 'PTS') + get_stat_in_category(stats, '3PTM') - stats['FGA'] + stats['FGM'] * 2 - stats['FTA'] + stats['FTM'] \
            + stats['REB'] + stats['AST'] * 2 + stats['STL'] * 4 + stats['BLK'] * 4 - stats['TO'] * 2
 
 
-def get_stat(stats: dict, key: str) -> float:
-    if key in stats:
-        return stats[key]
+def get_stat_in_category(stats: dict, cat: str) -> float:
+    if cat in stats:
+        return stats[cat]
     return 0
 
 
