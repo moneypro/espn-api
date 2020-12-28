@@ -1,6 +1,6 @@
 # Helper functions for json parsing and power rankings
 
-def json_parsing(obj, key):
+def json_parsing(obj, key, index=0):
     """Recursively pull values of specified key from nested JSON."""
     arr = []
 
@@ -18,4 +18,4 @@ def json_parsing(obj, key):
         return arr
 
     results = extract(obj, arr, key)
-    return results[0] if results else results
+    return results[index] if results else results
