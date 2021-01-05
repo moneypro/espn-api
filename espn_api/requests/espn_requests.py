@@ -31,8 +31,7 @@ class EspnFantasyRequests(object):
             self.LEAGUE_ENDPOINT += "/leagueHistory/" + str(league_id) + "?seasonId=" + str(year)
         else:
             self.LEAGUE_ENDPOINT += "/seasons/" + str(year) + "/segments/0/leagues/" + str(league_id)
-        
-    
+
     def league_get(self, params: dict = None, headers: dict = None, extend: str = ''):
         endpoint = self.LEAGUE_ENDPOINT + extend
         r = requests.get(endpoint, params=params, headers=headers, cookies=self.cookies)
@@ -41,9 +40,18 @@ class EspnFantasyRequests(object):
         if self.logger:
             self.logger.log_request(endpoint=endpoint, params=params, headers=headers, response=r.json())
         return r.json() if self.year > 2017 else r.json()[0]
-    
+
+    def league_post(self, payload: dict = None, headers: dict = None, extend: str = ''):
+        endpoint = self.LEAGUE_ENDPOINT + extend
+        r = requests.post(endpoint, json=payload, headers=headers, cookies=self.cookies)
+        checkRequestStatus(r.status_code)
+        if self.logger:
+            self.logger.log_request(endpoint=endpoint, params=payload, headers=headers, response=r.json())
+        return r.json() if self.year > 2017 else r.json()[0]
+
     def get(self, params: dict = None, headers: dict = None, extend: str = ''):
         endpoint = self.ENDPOINT + extend
+        print(endpoint)
         r = requests.get(endpoint, params=params, headers=headers, cookies=self.cookies)
         checkRequestStatus(r.status_code)
 
