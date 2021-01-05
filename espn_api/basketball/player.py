@@ -12,8 +12,6 @@ class Player(object):
         self.acquisitionType = json_parsing(data, 'acquisitionType')
         self.proTeam = PRO_TEAM_MAP[json_parsing(data, 'proTeamId')]
         self.injuryStatus = json_parsing(data, 'injuryStatus', index=-1)
-        if self.injuryStatus != "ACTIVE":
-            print(self.injuryStatus)
         self.stats = {}
 
         # add available stats

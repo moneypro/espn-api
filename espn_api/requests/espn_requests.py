@@ -51,7 +51,6 @@ class EspnFantasyRequests(object):
 
     def get(self, params: dict = None, headers: dict = None, extend: str = ''):
         endpoint = self.ENDPOINT + extend
-        print(endpoint)
         r = requests.get(endpoint, params=params, headers=headers, cookies=self.cookies)
         checkRequestStatus(r.status_code)
 
