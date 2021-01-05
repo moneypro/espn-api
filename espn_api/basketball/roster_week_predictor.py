@@ -42,7 +42,7 @@ class RosterWeekPredictor:
 
     @staticmethod
     def get_lo_hi_stats(player: Player) -> (int, int):
-        stat_period_list = ['012021', '022021', '002020', '002021', '102021', '032021']
+        stat_period_list = ['012021', '022021', '002021', '032021']
         fpts_for_stat_period = [RosterWeekPredictor.get_stat_from_stat_period(player, stat_period) for stat_period in stat_period_list]
         ignore_none_fpts_list = [fpts for fpts in fpts_for_stat_period if fpts is not None]
         return min(ignore_none_fpts_list), max(ignore_none_fpts_list)
