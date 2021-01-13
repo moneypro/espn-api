@@ -45,12 +45,14 @@ class LineUpEditor:
             except:
                 print("Failed to bench player ", player)
 
-    def fill_line_up(self, scoring_period, sort_stats_by='002021'):
+    def fill_line_up(self, scoring_period, sort_stats_by='002021', ignore_injury=False):
         """
         Undefined behavior for active player > 10. TODO: Manage by avg stats.
         """
         self.bench_all_players(scoring_period)
         players_playing_that_day = self.game_day_player_getter.get_players_playing(scoring_period)
+        if not ignore_injury:
+            players_playing_that_day = [player for player in players_playing_that_day if player.injuryStatus == 'ACTIVE']
         line_up = self.get_optimized_line_up(players_playing_that_day)
         for player_id, to_line_up_slot_id in line_up:
             move_command = [
@@ -81,9 +83,16 @@ class LineUpEditor:
             if len(positions) == 1 and positions[0] not in fixed_slots: # single position, put into the slot
                 assigned_player_id_set.add(player.playerId)
                 fixed_slots[positions[0]] = player.playerId
-            elif len(assigned_player_id_set) < 10 and len(util_list) < 5:
-                assigned_player_id_set.add(player.playerId)
-                util_list.append(player.playerId)
+        for player in active_players:
+            if player.playerId not in assigned_player_id_set and len(assigned_player_id_set) < 10:
+                positions = LineUpEditor.get_available_position(player.eligibleSlots)
+                for position in positions:
+                    if position not in fixed_slots:
+                        fixed_slots[position] = player.playerId
+                        assigned_player_id_set.add(player.playerId)
+                if player.playerId not in assigned_player_id_set and len(util_list) < 5:
+                    util_list.append(player.playerId)
+                    assigned_player_id_set.add(player.playerId)
         line_up = []
         [line_up.append((playerId, POSITION_MAP[position])) for position, playerId in fixed_slots.items()]
         [line_up.append((playerId, POSITION_MAP['UT'])) for playerId in util_list]
