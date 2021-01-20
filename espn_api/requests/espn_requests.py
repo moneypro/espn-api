@@ -58,6 +58,13 @@ class EspnFantasyRequests(object):
             self.logger.log_request(endpoint=endpoint, params=params, headers=headers, response=r.json())
         return r.json()
 
+    def get_line_up_for_day(self, team_id, scoring_period_id):
+        """https://fantasy.espn.com/apis/v3/games/fba/seasons/2021/segments/0/leagues/30695?forTeamId=2&scoringPeriodId=16&view=mRoster"""
+        params = {
+            'forTeamId': team_id, 'scoringPeriodId': scoring_period_id, 'view': 'mRoster'
+        }
+        return self.league_get(params=params)
+
     def get_league(self):
         '''Gets all of the leagues initial data (teams, roster, matchups, settings)'''
         params = {

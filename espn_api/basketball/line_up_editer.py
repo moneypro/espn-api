@@ -22,7 +22,7 @@ class LineUpEditor:
         self.team_id = team_id
         self.swid = self.league.espn_request.cookies['SWID']
         self.roster = self.league.get_team_data(self.team_id).roster
-        self.game_day_player_getter = GameDayPlayerGetter(league, self.roster)
+        self.game_day_player_getter = GameDayPlayerGetter(league, self.roster, team_id)
 
     def change_line_up(self, payload):
         data = self.league.espn_request.league_post(payload=payload, extend="/transactions/")
@@ -34,16 +34,13 @@ class LineUpEditor:
         """
         bench_slot_id = POSITION_MAP['BE']
         # TODO: See below. Also, ignore IR player.
-        for player in self.roster:
-            move_to_bench_command = [
-                {"playerId": player.playerId, "type": "LINEUP", "toLineupSlotId": bench_slot_id}]
-            payload = {"isLeagueManager": "false", "teamId": self.team_id, "type": "FUTURE_ROSTER", "memberId": self.swid,
+
+        move_to_bench_command = [{"playerId": player.playerId, "type": "LINEUP", "toLineupSlotId": bench_slot_id}
+                                 for player in self.game_day_player_getter.get_active_player_list_for_day(scoring_period)]
+        payload = {"isLeagueManager": "false", "teamId": self.team_id, "type": "FUTURE_ROSTER", "memberId": self.swid,
                        "scoringPeriodId": scoring_period, "executionType": "EXECUTE",
                        "items": move_to_bench_command}
-            try:
-                self.change_line_up(payload)
-            except:
-                print("Failed to bench player ", player)
+        self.change_line_up(payload)
 
     def fill_line_up(self, scoring_period, sort_stats_by='002021', ignore_injury=False):
         """
@@ -54,20 +51,11 @@ class LineUpEditor:
         if not ignore_injury:
             players_playing_that_day = [player for player in players_playing_that_day if player.injuryStatus == 'ACTIVE']
         line_up = self.get_optimized_line_up(players_playing_that_day)
-        for player_id, to_line_up_slot_id in line_up:
-            move_command = [
-                {"playerId": player_id, "type": "LINEUP", "toLineupSlotId": to_line_up_slot_id} ]
-            payload = {"isLeagueManager": "false", "teamId": self.team_id, "type": "FUTURE_ROSTER", "memberId": self.swid,
-                       "scoringPeriodId": scoring_period, "executionType": "EXECUTE",
-                       "items": move_command}
-            # TODO: Use one single request and get the roster of that day.
-            # 如果你当前名单和未来名单不一样
-            # 而且那一天当前名单多出来的人又有比赛的话会报错
-            #  "https://fantasy.espn.com/apis/v3/games/fba/seasons/2021/segments/0/leagues/30695?forTeamId=2&scoringPeriodId=16&view=mRoster"
-            try:
-                self.change_line_up(payload)
-            except:
-                print("Failed to change line up for player ", player_id)
+        move_command = [{"playerId": player_id, "type": "LINEUP", "toLineupSlotId": to_line_up_slot_id} for player_id, to_line_up_slot_id in line_up]
+        payload = {"isLeagueManager": "false", "teamId": self.team_id, "type": "FUTURE_ROSTER", "memberId": self.swid,
+                   "scoringPeriodId": scoring_period, "executionType": "EXECUTE",
+                   "items": move_command}
+        self.change_line_up(payload)
 
     def get_optimized_line_up(self, active_players: [Player], sort_stats_by='002021') -> [(str, int)]:
         """
@@ -77,7 +65,6 @@ class LineUpEditor:
         fixed_slots = {}
         util_list = []
         assigned_player_id_set = set()
-        # TODO: Say I don't have any pure SF, but Tatum is SF, PF, he doesn't get filled into SF directly
         for player in active_players:
             positions = LineUpEditor.get_available_position(player.eligibleSlots)
             if len(positions) == 1 and positions[0] not in fixed_slots: # single position, put into the slot
@@ -103,4 +90,6 @@ class LineUpEditor:
         # PG, SG, SF, PF, C
         available_positions = [POSITION_MAP[i] for i in range(5)]
         return [eligible_slot for eligible_slot in eligible_slots if eligible_slot in available_positions]
+
+
 
